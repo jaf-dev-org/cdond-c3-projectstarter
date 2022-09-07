@@ -155,7 +155,7 @@ jobs:
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:Name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
             --output text >> ~/project/.circleci/ansible/inventory.txt
             cat ~/project/.circleci/ansible/inventory.txt
             
@@ -169,35 +169,35 @@ jobs:
       - destroy-environment:
           stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
 
-  # configure-infrastructure:
-  #   docker:
-  #     - image: python:3.10-alpine3.16
-  #   steps:
-  #     # Checkout code from git
-  #     - checkout
-  #     # Add ssh keys with fingerprint
-  #     - add_ssh_keys:
-  #         fingerprints: ["0e:94:c6:29:b2:96:c1:46:7e:b2:3a:1e:4f:49:da:05"]
-  #     # attach workspace
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update --no-cache ansible tar gzip aws-cli openssh
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           pwd 
-  #           cd .circleci/ansible
-  #           ls -al 
-  #           ansible-playbook -i inventory.txt configure-server.yml
-  #         no_output_timeout: 30m
-  #     # Here's where you will add some code to rollback on failure 
-  #     - destroy-environment:
-  #         stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-  #     - destroy-environment:
-  #         stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+  configure-infrastructure:
+    docker:
+      - image: python:3.10-alpine3.16
+    steps:
+      # Checkout code from git
+      - checkout
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: ["0e:94:c6:29:b2:96:c1:46:7e:b2:3a:1e:4f:49:da:05"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update --no-cache ansible tar gzip aws-cli openssh
+      - run:
+          name: Configure server
+          command: |
+            pwd 
+            cd .circleci/ansible
+            ls -al 
+            ansible-playbook -i inventory.txt configure-server.yml
+          no_output_timeout: 30m
+      # Here's where you will add some code to rollback on failure 
+      - destroy-environment:
+          stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+      - destroy-environment:
+          stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
 
   # run-migrations:
   #   docker:
