@@ -294,7 +294,7 @@ jobs:
   smoke-test:
     docker:
       # Lightweight Docker image
-      - image: circleci/node:13.8.0
+      - image: python:3.10-alpine3.16
     steps:
       # Checkout code from git
       - checkout
@@ -333,6 +333,7 @@ jobs:
               return 1
             fi
       # Here's where you will add some code to rollback on failure  
+      - revert-migrations
 
 #   cloudfront-update:
 #     docker:
