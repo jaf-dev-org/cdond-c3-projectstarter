@@ -20,3 +20,6 @@
     npm install
     pm2 stop all
     pm2 start npm -- start
+  register: pm2
+  
+- debug: msg="{{ pm2.stdout }}"
