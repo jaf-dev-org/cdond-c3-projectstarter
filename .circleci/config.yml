@@ -4,7 +4,7 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      stack:
+      workflow_id:
         type: string  
     steps:
       - run:
@@ -12,18 +12,21 @@ commands:
           when: on_fail
           command: |
             aws cloudformation delete-stack \
-              --stack-name "<<parameters.stack>>"
+              --stack-name "udapeople-backend-<<parameters.workflow_id>>"
+            aws cloudformation delete-stack \
+              --stack-name "udapeople-frontend-<<parameters.workflow_id>>"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      workflow_id:
+        type: string     
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
-            export SUCCESS=$(curl https://kvdb.io/ELHy62f4JrtMqheL4muLVN/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            export SUCCESS=$(curl --insecure https://kvdb.io/ELHy62f4JrtMqheL4muLVN/migration_<< parameters.workflow_id >>)
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -165,9 +168,7 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure 
       - destroy-environment:
-          stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-environment:
-          stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   configure-infrastructure:
     docker:
@@ -195,9 +196,7 @@ jobs:
           no_output_timeout: 30m
       # Here's where you will add some code to rollback on failure 
       - destroy-environment:
-          stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-environment:
-          stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   run-migrations:
     docker:
@@ -255,9 +254,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       # Here's where you will add some code to rollback on failure  
       - destroy-environment:
-          stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-environment:
-          stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
   deploy-backend:
     docker:
@@ -350,7 +347,10 @@ jobs:
               return 1
             fi
       # Here's where you will add some code to rollback on failure  
-      - revert-migrations
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #   cloudfront-update:
 #     docker:
