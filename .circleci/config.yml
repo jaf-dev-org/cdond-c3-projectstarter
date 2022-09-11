@@ -241,9 +241,9 @@ jobs:
               --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
               --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="https://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            echo API_URL="https://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
@@ -324,7 +324,7 @@ jobs:
                 --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
                 --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
                 --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="https://${BACKEND_IP}:3030"
             echo "${API_URL}"
             
             echo "sleeping for 1 minute"
@@ -399,6 +399,13 @@ jobs:
       - run:
           name: Remove old stacks and files
           command: |
+            export OldWorkflowID=$(aws cloudformation \
+                    list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                    --no-paginate --output text | grep -o '[^-]*$')
+            
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+                    --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+                    
             echo old_workflow_id: "${OldWorkflowID}"
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
